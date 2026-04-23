@@ -18,6 +18,7 @@ export default class App extends React.Component {
       }),
     ],
     fullscreenImageId: null,
+    isInputFocused: false,
   };
 
   componentWillMount() {
@@ -25,9 +26,9 @@ export default class App extends React.Component {
       const { fullscreenImageId } = this.state;
       if (fullscreenImageId) {
         this.dismissFullscreenImage();
-        return true; // tells Android we handled the back press
+        return true;
       }
-      return false; // lets Android handle the back press normally
+      return false;
     });
   }
 
@@ -37,6 +38,25 @@ export default class App extends React.Component {
 
   dismissFullscreenImage = () => {
     this.setState({ fullscreenImageId: null });
+  };
+
+  handlePressToolbarCamera = () => {
+    // placeholder
+  };
+
+  handlePressToolbarLocation = () => {
+    // placeholder
+  };
+
+  handleChangeFocus = (isFocused) => {
+    this.setState({ isInputFocused: isFocused });
+  };
+
+  handleSubmit = (text) => {
+    const { messages } = this.state;
+    this.setState({
+      messages: [createTextMessage(text), ...messages],
+    });
   };
 
   handlePressMessage = ({ id, type }) => {
@@ -63,7 +83,7 @@ export default class App extends React.Component {
         );
         break;
       case 'image':
-        this.setState({ fullscreenImageId: id });
+        this.setState({ fullscreenImageId: id, isInputFocused: false });
         break;
       default:
         break;
@@ -83,9 +103,16 @@ export default class App extends React.Component {
   }
 
   renderToolbar() {
+    const { isInputFocused } = this.state;
     return (
       <View style={styles.toolbar}>
-        <Toolbar />
+        <Toolbar
+          isFocused={isInputFocused}
+          onSubmit={this.handleSubmit}
+          onChangeFocus={this.handleChangeFocus}
+          onPressCamera={this.handlePressToolbarCamera}
+          onPressLocation={this.handlePressToolbarLocation}
+        />
       </View>
     );
   }
@@ -100,15 +127,10 @@ export default class App extends React.Component {
 
   renderFullscreenImage = () => {
     const { messages, fullscreenImageId } = this.state;
-
     if (!fullscreenImageId) return null;
-
     const image = messages.find(message => message.id === fullscreenImageId);
-
     if (!image) return null;
-
     const { uri } = image;
-
     return (
       <TouchableHighlight
         style={styles.fullscreenOverlay}
